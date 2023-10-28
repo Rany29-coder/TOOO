@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block head %}
+    <style>
+        .task-card {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px;
+            border-radius: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .task-image {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .task-info {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .priority, .pomodoros {
+            margin: 5px;
+        }
+
+        .columns-container {
+            display: flex;
+            gap: 20px;
+            padding: 10px 0;
+        }
+
+        .column {
+            flex: 1;
+            min-width: 250px;
+            padding: 10px;
+            border: 1px solid #eee;
+        }
+
+        /* Additional styles for the modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;  /* This will center the modal vertically */
+            padding: 20px;
+            border: 1px solid #888;
+            width: 50%;  /* Adjust this value to make the modal narrower or wider */
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);  /* Adds a shadow to the modal */
+            max-height: 80%;           /* Limit the height to 80% of the viewport */
+            overflow-y: auto;          /* Add vertical scrolling if necessary */
+            padding-bottom: 40px; 
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover, .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+{% macro render_task(task) %}
+    <div class="task-card" data-task-id="{{ task.id }}">
+        <!-- Display the current task details ... -->
+        <!-- ... -->
+        <!-- Display its subtasks recursively -->
+        {% for subtask in task.subtasks %}
+            {{ render_task(subtask) }}
+        {% endfor %}
+    </div>
+{% endmacro %}
+
+<div style="display: flex; align-items: center; gap: 10px;">
+    <h2 style="margin-bottom: 0;">{{ project.title }}</h2>
+    <a href="{{ url_for('views.projects') }}">Back to Projects</a>
+    <a href="{{ url_for('views.edit_project', project_id=project.id) }}">Edit Project</a>
+    <a href="{{ url_for('views.delete_project', project_id=project.id) }}" 
+       onclick="return confirm('Are you sure you want to delete this project? All columns and tasks in it will also be deleted.');">
+       Delete Project
+    </a>
+</div>
+
+<form action="{{ url_for('views.add_column', project_id=project.id) }}" method="post">
+    <label for="column_title">Add Column:</label>
+    <input type="text" id="column_title" name="column_title">
+    <input type="submit" value="Add Column">
+</form>
+
+<div class="columns-container">
+    {% for column in project.columns %}
+    <div class="column" id="column-{{ column.id }}">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+            <h3>{{ column.title }}</h3>
+            <!-- Updated the button to open the modal -->
+            <button class="add-task-btn" data-target="addTaskModal-{{ column.id }}" style="background-color: grey; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">+</button>
+        </div>
+
+        {% for task in column.tasks %}
+        <div class="task-card" data-task-id="{{ task.id }}">
+            {% if task.picture %}
+                <img src="{{ url_for('static', filename='uploads/' + task.picture) }}" alt="Task Image" class="task-image">
+            {% endif %}
+            <div class="task-info">
+                <span class="priority">{{ task.priority }}</span>
+                <span class="pomodoros">{{ task.pomodoros }} Pomodoros</span>
+            </div>
+            <a href="{{ url_for('views.get_task', task_id=task.id) }}">{{ task.title }}</a>
+            <div>
+                <a href="{{ url_for('views.edit_task', task_id=task.id) }}">Edit</a>
+                <a href="{{ url_for('views.delete_task', task_id=task.id) }}" onclick="return confirm('Are you sure you want to delete this task?');">Delete</a>
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Add Task Modal for this specific column -->
+<div id="addTaskModal-{{ column.id }}" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Add Task to Column: {{ column.title }}</h2>
+        
+        <!-- Inserting the task addition form for this specific column -->
+        <form action="{{ url_for('views.add_task', column_id=column.id) }}" method="post">
+            
+            <!-- Task Title -->
+            <label for="title">Task Title:</label>
+            <input type="text" id="title" name="title" required placeholder="Enter Task Title">
+    
+            <!-- Task Picture (assuming URL input for simplicity) -->
+            <label for="picture">Picture URL:</label>
+            <input type="url" id="picture" name="picture" placeholder="Enter Picture URL">
+    
+            <!-- Task Date -->
+            <label for="date">Date:</label>
+            <input type="datetime-local" id="date" name="date" required>
+    
+            <!-- Task Duration -->
+            <label for="duration">Duration (in minutes):</label>
+            <input type="number" id="duration" name="duration" required placeholder="Duration">
+    
+            <!-- Task Pomodoros -->
+            <label for="pomodoros">Pomodoros:</label>
+            <input type="number" id="pomodoros" name="pomodoros" required placeholder="Number of Pomodoros">
+    
+            <!-- Task Priority -->
+            <label for="priority">Priority:</label>
+            <select id="priority" name="priority">
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+            </select>
+    
+            <!-- Task Category -->
+            <label for="category_id">Category:</label>
+            <select id="category_id" name="category_id">
+                <!-- Ideally, you'd fetch and loop through actual categories from the database. 
+                     For simplicity, we're hardcoding some categories here. -->
+                <option value="1">Category 1</option>
+                <option value="2">Category 2</option>
+                <option value="3">Category 3</option>
+            </select>
+    
+            <!-- Task Description -->
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" placeholder="Enter Task Description"></textarea>
+    
+            <!-- Submit Button -->
+            <button type="submit">Add Task</button>
+        </form>
+    </div>
+</div>
+
+
+        <a href="{{ url_for('views.edit_column', column_id=column.id) }}">Edit Column</a>
+        <a href="{{ url_for('views.delete_column', column_id=column.id) }}" onclick="return confirm('Are you sure you want to delete this column? All tasks in it will also be deleted.');">Delete Column</a>
+    </div>
+    {% endfor %}
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        var columns = $('.column');
+
+        columns.each(function() {
+            new Sortable(this, {
+                draggable: ".task-card",
+                group: 'shared',
+                animation: 150,
+                onEnd: function(evt) {
+                    var taskId = evt.item.dataset.taskId;
+                    var newColumnId = evt.to.id.split('-')[1]; // Assuming the id format is "column-<id>"
+
+                    fetch('/move-task', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: 'task_id=' + taskId + '&new_column_id=' + newColumnId
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) {
+                            alert('Error moving task: ' + data.message);
+                        }
+                    });
+                }
+            });
+        });
+
+        // When the user clicks on the "+" button, open the modal
+        $(".add-task-btn").click(function() {
+            var targetModalId = $(this).attr("data-target");
+            $("#" + targetModalId).show();
+        });
+
+        // When the user clicks on the close button (×), close the modal
+        $(".close").click(function() {
+            $(this).closest('.modal').hide();
+        });
+
+        // When the user clicks anywhere outside of the modal, close it
+        $(window).click(function(event) {
+            if ($(event.target).hasClass('modal')) {
+                $(event.target).hide();
+            }
+        });
+    });
+</script>
+
+{% endblock %}

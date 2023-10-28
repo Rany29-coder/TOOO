@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>All Projects</h2>
+<ul>
+    {% for project in projects %}
+        <li>
+            <a href="{{ url_for('views.project_detail', project_id=project.id) }}">{{ project.title }}</a>
+        </li>
+    {% endfor %}
+</ul>
+<a href="{{ url_for('views.new_project') }}">Create New Project</a>
+{% for project in projects %}
+    <div class="project">
+        <h3>{{ project.title }}</h3>
+        <!-- other project details -->
+
+        <!-- Delete link -->
+        <a href="{{ url_for('views.delete_project', project_id=project.id) }}" onclick="return confirm('Are you sure you want to delete this project?');">Delete</a>
+    </div>
+{% endfor %}
+
+{% endblock %}

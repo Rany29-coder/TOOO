@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Add Task to Column: {{ column.title }}</h2>
+<form action="{{ url_for('views.add_task', column_id=column.id) }}" method="post">
+    
+    <!-- Task Title -->
+    <label for="title">Task Title:</label>
+    <input type="text" id="title" name="title" required placeholder="Enter Task Title">
+
+    <!-- Task Picture (assuming URL input for simplicity) -->
+    <label for="picture">Picture URL:</label>
+    <input type="url" id="picture" name="picture" placeholder="Enter Picture URL">
+
+    <!-- Task Date -->
+    <label for="date">Date:</label>
+    <input type="datetime-local" id="date" name="date" required>
+
+    <!-- Task Duration -->
+    <label for="duration">Duration (in minutes):</label>
+    <input type="number" id="duration" name="duration" required placeholder="Duration">
+
+    <!-- Task Pomodoros -->
+    <label for="pomodoros">Pomodoros:</label>
+    <input type="number" id="pomodoros" name="pomodoros" required placeholder="Number of Pomodoros">
+
+    <!-- Task Priority -->
+    <label for="priority">Priority:</label>
+    <select id="priority" name="priority">
+        <option value="low">Low</option>
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
+    </select>
+
+    <!-- Task Category (assuming some predefined categories) -->
+    <!-- This section can be enhanced based on the actual categories you have -->
+    <label for="category_id">Category:</label>
+    <select id="category_id" name="category_id">
+        <!-- For simplicity, I'm adding some hardcoded categories here -->
+        <!-- You'd ideally fetch and loop through actual categories from the database -->
+        <option value="1">Category 1</option>
+        <option value="2">Category 2</option>
+        <option value="3">Category 3</option>
+    </select>
+
+    <!-- Task Description -->
+    <label for="description">Description:</label>
+    <textarea id="description" name="description" placeholder="Enter Task Description"></textarea>
+
+    <!-- Submit Button -->
+    <button type="submit">Add Task</button>
+</form>
+{% endblock %}

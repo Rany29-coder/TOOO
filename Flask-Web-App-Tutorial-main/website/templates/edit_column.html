@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Edit Column: {{ column.title }}</h2>
+<form action="{{ url_for('views.edit_column', column_id=column.id) }}" method="post">
+    <label for="column_title">Column Title:</label>
+    <input type="text" id="column_title" name="column_title" value="{{ column.title }}">
+    <input type="submit" value="Update Column">
+</form>
+{% endblock %}

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" crossorigin="anonymous" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous" />
+
+    <title>{% block title %}Home{% endblock %}</title>
+
+    <style>
+      /* Sidebar styles */
+      .sidebar {
+          height: 100%;
+          width: 0;
+          position: fixed;
+          z-index: 1;
+          top: 0;
+          left: 0;
+          background-color: #111;
+          overflow-x: hidden;
+          transition: 0.5s;
+          padding-top: 60px;
+      }
+  
+      .sidebar a {
+          padding: 10px 15px;
+          text-decoration: none;
+          font-size: 18px;
+          color: white;
+          display: block;
+          transition: 0.3s;
+      }
+  
+      .sidebar a:hover {
+          color: #575757;
+      }
+  
+      .content {
+          transition: margin-left .5s;
+          padding: 20px;
+      }
+  
+      #menuBtn {
+          position: fixed;
+          top: 20px;
+          left: 20px;
+          z-index: 2;
+      }
+      .columns-container {
+        display: flex;
+        gap: 20px;
+        overflow-x: auto;
+        padding: 10px 0;
+        white-space: nowrap;
+    }
+    
+    .column {
+        display: inline-flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 5px;
+        padding-bottom: 0;
+        border: 1.5px solid white;
+        border-radius: 9px;
+        background-color: #FFF;
+    }
+    
+    .column-title {
+        color: #172B4D;
+        font-size: 2rem;
+        font-weight: bold;
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* Body styles */
+    body {
+      min-height: 100vh;
+      background-color: #F9FAFB;
+  }
+  .task-card {
+    border: 2px solid #ccc;
+    padding: 15px;
+    margin: 10px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f9f9f9;  /* A light background color */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);  /* Some shadow for depth */
+}
+
+.task-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 50%;
+    margin-bottom: 10px;  /* Add some space between image and text */
+}
+
+.task-info {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding-top: 10px;  /* Add some padding at the top */
+}
+
+.priority, .pomodoros {
+    margin: 5px;
+    padding: 5px;  /* More padding for better appearance */
+    border-radius: 5px;  /* Rounded corners */
+}
+
+.priority {
+    background-color: #ffd1d1;  /* Light red background for priority */
+}
+
+.pomodoros {
+    background-color: #e0e0e0;  /* Light grey background for pomodoros */
+}
+
+  
+    </style>
+</head>
+
+<body>
+    <!-- Menu Button -->
+    <button id="menuBtn" class="btn btn-dark" onclick="toggleMenu()">☰ Menu</button>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        {% if current_user.is_authenticated %}
+        <a href="/logout">Logout</a>
+        <a href="/projects">Projects</a>
+        {% for project in current_user.projects %}
+        <a href="{{ url_for('views.project_detail', project_id=project.id) }}">{{ project.title }}</a>
+        {% endfor %}
+        {% else %}
+        <a href="/login">Login</a>
+        <a href="/sign-up">Sign Up</a>
+        {% endif %}
+    </div>
+
+    <!-- Main content area -->
+    <div class="content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="container">
+            {% block content %}
+            {% endblock %}
+        </div>
+
+        <script>
+          function toggleMenu() {
+              const sidebar = document.querySelector('.sidebar');
+              const content = document.querySelector('.content');
+              if (sidebar.style.width === '0px' || sidebar.style.width === '') {
+                  sidebar.style.width = '250px';
+                  content.style.marginLeft = '250px';
+              } else {
+                  sidebar.style.width = '0px';
+                  content.style.marginLeft = '0px';
+              }
+          }
+      </script>
+
+        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" crossorigin="anonymous"></script>
+
+        {% block javascript %}
+            <script type="text/javascript">
+                function deleteNote(noteId) {
+                    fetch("/delete-note", {
+                        method: "POST",
+                        body: JSON.stringify({ noteId: noteId }),
+                    }).then((_res) => {
+                        window.location.href = "/";
+                    });
+                }
+            </script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+        {% endblock %}
+    </div>
+</body>
+
+</html>

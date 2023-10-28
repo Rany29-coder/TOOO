@@ -1,0 +1,5 @@
+<form action="{{ url_for('views.edit_project', project_id=project.id) }}" method="post">
+    <label for="title">Project Title:</label>
+    <input type="text" id="title" name="title" value="{{ project.title }}">
+    <input type="submit" value="Update Project">
+</form>
